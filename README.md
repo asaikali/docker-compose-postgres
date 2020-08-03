@@ -1,11 +1,13 @@
 # Developer Friendly Local Postgres with Docker Compose
 
-To run the sample application follow the following steps
+![Java CI with Maven](https://github.com/asaikali/docker-compose-postgres/workflows/Java%20CI%20with%20Maven/badge.svg)
+
+Steps to try out the sample.
 
 * checkout the code 
-* run postgres and pgAdmin `docker-compose up`
-* Using a browser go to `localhost:15432` and explore the pgAdmin console, there should be two 
-databases demo1 and demo2. You should not be challenged for any passwords by pgAdmin. 
+* run postgres and pgAdmin using `docker-compose up`
+* Using a browser go to `localhost:15432` and explore the pgAdmin console. There should be two 
+databases `demo1` and `demo2`. pgAdmin will not ask for any passwords.
 * run the spring boot sample application with `./mvnw spring-boot:run` you will need Java 11 JDK
 installed for this command to work. If you are only interested in the postgres docker-compose 
 configuration you can skip this step.
@@ -66,7 +68,7 @@ dialog boxes to connect to the database. Setting up the containers wit
 pre-configured connectivity is a bit tricky, the rest of this post shows you
 the configuration works. 
 
-# Setting up the docke-compose volumes and network 
+# Setting up the docker-compose volumes and network 
 
 The full docker compose file is in the repo at [docker-compose.yml](docker-compose.yml) we will break it down into parts and explain how 
 each section works. 
