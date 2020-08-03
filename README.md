@@ -208,7 +208,7 @@ to `localhost:8080/` should return a random quote similar to the one below
 The sample application uses [Flyway DB](https://flywaydb.org/) to manage the configuration 
 of the database. You can find the DDL it uses in `src/main/resources/db/migration/V1__create_quotes_table.sql` 
 
-# # Setting up the pgAdmin 4 Container
+# Setting up the pgAdmin 4 Container
 
 To set up the pgAdmin container we use the following service in the `docker-compose` file
 
@@ -267,7 +267,7 @@ variable `PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"`
 Normal behaviour of pgAdmin is for a user to use the GUI to define a connetion to a database as
 shown below.
 
-![pgAdmin](diagrams/pgAdminConnect.png)
+![pgAdmin](diagrams/pgAdminConnect.png | 250x250)
 
 To avoid having to enter the connection settings we can create a file json file with 
 all the connection details that pgAdmin will use to connect on startup. 
