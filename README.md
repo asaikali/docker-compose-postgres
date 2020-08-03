@@ -68,12 +68,14 @@ volumes:
 The above section defines standard docker-compose file version number, and it also defines 
 two volumes. The postgres volume will be used by the container running postgres, this means 
 that the state of the postgres database will survive restarts of the container. Similarly, 
-the 'pgadmin' volume will be used by the pgAdmin container to store its configuration
+the `pgadmin` volume will be used by the pgAdmin container to store its configuration
 settings across container restarts.
 
 Docker compose will automatically create a single network that all the containers will be connected 
-to. docker-compose derives the network name from te directory name of the 
-`docker-compose.yml` in this example the network will be called `docker-compose-postgres_default` 
+to and register them in DNS using the docker compose service name. This means that the pgAdmin 
+container can find the postgres server using its docker-compose service name which is `postgres`. 
+docker-compose derives the network name from the directory name containing the 
+`docker-compose.yml` file. In this example the network name is `docker-compose-postgres_default`.
 
 # Setting up the PostgresSQL Container
 
