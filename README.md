@@ -342,10 +342,46 @@ the ability to use `*` a wild card match on the first 4 fields. So we write
 For security reasons pgAdmin will ignore any password files that are not locked down with 
 unix permissions of 600. Therefore, the next command we execute is `chmod 600 /tmp/pgpassfile`
 
-With the password file written with the correct unix permission we lanuch the pgAdmin container
+With the password file written with the correct unix permission we launch the pgAdmin container
 entry point by calling `/entrypoint.sh` which on startup will find password file and server
 connections that point to the postgres we launched in docker. The net result is that you can 
 just click around the pgAdmin UI, and you will not have to set up any connections or passwords.
+
+# Test Containers
+
+The sample application in this repo includes the automated test shown below.
+
+```java
+@SpringBootTest
+class DemoApplicationTests {
+
+	@Autowired
+	private QuoteRepository quoteRepository;
+
+	@Test
+	@DisplayName("Database has 5 quotes")
+	void databaseHas5Quotes() {
+		Assertions.assertThat(this.quoteRepository.findAll()).hasSize(5);
+	}
+}
+```
+
+the `src/test/resources/application.yml` config file uses test containers url shown below 
+
+```yaml
+spring:
+  datasource:
+    url: "jdbc:tc:postgresql:12:///demo1?TC_TMPFS=/testtmpfs:rw"
+    username: postgres
+    password: password
+```
+
+Test containers has nice integration with Spring Boot and it uses the specially formatted jdbc 
+url `jdbc:tc:postgresql:12:///demo1?TC_TMPFS=/testtmpfs:rw` to launch the postgres 12 container
+create database called demo1 and put the postgres data directory on a temporary in RAM  
+file system for optimal performance of Postgres while the test is executing. The postgres database 
+will only exist for the duration of the test case execution there is no point in storing its data
+on disk. 
 
 # Conclusion 
 

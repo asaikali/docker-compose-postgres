@@ -3,6 +3,8 @@ spring:
     url: "jdbc:postgresql://127.0.0.1:15432/demo1"
     username: postgres
     password: password
+  jpa:
+    open-in-view: false
 
 management:
   endpoints:
