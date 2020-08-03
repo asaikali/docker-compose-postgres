@@ -1,5 +1,9 @@
 version: '3.7'
 
+volumes:
+    postgres:
+    pgadmin:
+
 services:
   postgres:
     container_name: demo_postgres
@@ -33,7 +37,4 @@ services:
       - "-c"
       - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
     restart: unless-stopped
-
-volumes:
-    postgres:
-    pgadmin:
+    

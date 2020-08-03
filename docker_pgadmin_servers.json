@@ -1,7 +1,7 @@
 {
     "Servers": {
       "1": {
-        "Name": "Docker Postgres",
+        "Name": "Docker Compose",
         "Group": "Servers",
         "Port": 5432,
         "Username": "postgres",

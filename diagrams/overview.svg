@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xl="http://www.w3.org/1999/xlink" xmlns:dc="http://purl.org/dc/elements/1.1/" viewBox="131 61.5 586.5 267" width="586.5" height="267">
+  <defs>
+    <font-face font-family="Helvetica Neue" font-size="12" panose-1="2 0 8 3 0 0 0 9 0 4" units-per-em="1000" underline-position="-100" underline-thickness="50" slope="0" x-height="517" cap-height="714" ascent="975.0061" descent="-216.99524" font-weight="700">
+      <font-face-src>
+        <font-face-name name="HelveticaNeue-Bold"/>
+      </font-face-src>
+    </font-face>
+    <font-face font-family="Helvetica Neue" font-size="12" panose-1="2 0 5 3 0 0 0 2 0 4" units-per-em="1000" underline-position="-100" underline-thickness="50" slope="0" x-height="517" cap-height="714" ascent="951.9958" descent="-212.99744" font-weight="400">
+      <font-face-src>
+        <font-face-name name="HelveticaNeue"/>
+      </font-face-src>
+    </font-face>
+    <marker orient="auto" overflow="visible" markerUnits="strokeWidth" id="FilledArrow_Marker" stroke-linejoin="miter" stroke-miterlimit="10" viewBox="-1 -4 10 8" markerWidth="10" markerHeight="8" color="black">
+      <g>
+        <path d="M 8 0 L 0 -3 L 0 3 Z" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+      </g>
+    </marker>
+    <font-face font-family="Helvetica Neue" font-size="10" panose-1="2 0 5 3 0 0 0 2 0 4" units-per-em="1000" underline-position="-100" underline-thickness="50" slope="0" x-height="517" cap-height="714" ascent="951.9958" descent="-212.99744" font-weight="400">
+      <font-face-src>
+        <font-face-name name="HelveticaNeue"/>
+      </font-face-src>
+    </font-face>
+  </defs>
+  <metadata> Produced by OmniGraffle 7.17.2\n2020-08-03 00:30:52 +0000</metadata>
+  <g id="Canvas_1" stroke="none" stroke-dasharray="none" stroke-opacity="1" fill-opacity="1" fill="none">
+    <title>Canvas 1</title>
+    <rect fill="white" x="131" y="61.5" width="586.5" height="267"/>
+    <g id="Canvas_1_Layer_1">
+      <title>Layer 1</title>
+      <g id="Graphic_6">
+        <rect x="131.5" y="62" width="585.5" height="266" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(136.5 67)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="700" fill="black" x="159.44" y="12">MacOS / Windows Development Workstation</tspan>
+        </text>
+      </g>
+      <g id="Graphic_9">
+        <rect x="422.5" y="97.5" width="276.5" height="216" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(427.5 102.5)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="700" fill="black" x="59.024" y="12">Linux VM Running Docker</tspan>
+        </text>
+      </g>
+      <g id="Graphic_15">
+        <path d="M 449.5 130.5 L 621.5 130.5 L 621.5 182 L 449.5 182 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+        <text transform="translate(454.5 134.746)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="3.99" y="11">Postgres database container</tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="22.758" y="25.336">listening on port 5432 </tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="1.068" y="39.671997">mapped to 15432 on linux vm</tspan>
+        </text>
+      </g>
+      <g id="Graphic_16">
+        <path d="M 449.5 249.5 L 621.5 249.5 L 621.5 301 L 449.5 301 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+        <text transform="translate(454.5 253.746)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="6.984" y="11">pgAdmin 4 server container</tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="16.872" y="25.336">listening on port port 80 </tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="1.068" y="39.671997">mapped to 15433 on linux vm</tspan>
+        </text>
+      </g>
+      <g id="Graphic_17">
+        <path d="M 157 156.25 L 188.625 114.5 L 251.875 114.5 L 283.5 156.25 L 251.875 198 L 188.625 198 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+        <text transform="translate(189.625 141.914)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="18.067" y="11">Java </tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="1.177" y="25.336">application </tspan>
+        </text>
+      </g>
+      <g id="Line_20">
+        <path d="M 535.5437 249.5 L 535.6055 213.09766 L 535.56614 191.89998" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_21">
+        <path d="M 283.3234 156.48316 L 344.9414 156.71094 L 439.60003 156.48197" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Graphic_22">
+        <path d="M 144.5 239.5 L 283.5 239.5 L 283.5 311 L 144.5 311 Z" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4.0,4.0" stroke-width="1"/>
+        <text transform="translate(149.5 253.746)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="28.626" y="11">Web Browser </tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="9.366" y="25.336"> Running PgAdmin 4 </tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x=".72" y="39.671997">Single Page Application</tspan>
+        </text>
+      </g>
+      <g id="Line_23">
+        <line x1="283.5" y1="275.25" x2="439.6" y2="275.25" marker-end="url(#FilledArrow_Marker)" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Graphic_24">
+        <rect x="326.47606" y="145.5177" width="80.95" height="22.28" fill="white"/>
+        <text transform="translate(331.47606 150.5177)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="3623768e-19" y="10">localhost:15432</tspan>
+        </text>
+      </g>
+      <g id="Graphic_25">
+        <rect x="326.18636" y="264.11" width="84.29" height="22.28" fill="white"/>
+        <text transform="translate(331.18636 269.11)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="43343107e-20" y="10">Localhost:15433</tspan>
+        </text>
+      </g>
+      <g id="Graphic_26">
+        <rect x="498.5511" y="204.53883" width="74.1" height="22.28" fill="white"/>
+        <text transform="translate(503.5511 209.53883)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="10" font-weight="400" fill="black" x="0" y="10">postgres:5432</tspan>
+        </text>
+      </g>
+      <g id="Graphic_27">
+        <rect x="634.5" y="133" width="51.5" height="168" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+        <text transform="translate(682.26 138) rotate(90)" fill="black">
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="700" fill="black" x="5.68" y="12">docker compose network </tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="19.096" y="26.348083">Service name become </tspan>
+          <tspan font-family="Helvetica Neue" font-size="12" font-weight="400" fill="black" x="49.432" y="40.68408">hostnames</tspan>
+        </text>
+      </g>
+      <g id="Line_28">
+        <line x1="588.3776" y1="182" x2="634.5" y2="204.46042" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+      <g id="Line_29">
+        <line x1="590.647" y1="249.5" x2="634.5" y2="229.02355" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-width="1"/>
+      </g>
+    </g>
+  </g>
+</svg>
