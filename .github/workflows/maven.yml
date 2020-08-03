@@ -20,5 +20,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 11
+    - name: Run Postgres
+      run: docker-compose up -d
     - name: Build with Maven
       run: mvn -B package --file pom.xml
