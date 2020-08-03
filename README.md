@@ -136,7 +136,7 @@ CREATE DATABASE demo2
 The postgres container looks for the initialization sql file at the path 
 `/docker-entrypoint-initdb.d/docker_postgres_init.sql`.  To keep things 
 simple we store our ddl in a file called  `docker_postgres_init.sql` and put it 
-at the same level as the `docker-compose.yml` as show by the example directory
+at the same level as the `docker-compose.yml` as shown by the example directory
 listing below. 
 
 ```
@@ -149,8 +149,8 @@ The init sql file is mapped to the place where the postgres container expects it
 be via the volume mapping below. 
 
 ```yaml
- volumes:
-       - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+volumes:
+  - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
 ```
 
 In order to make the postgres database running inside the docker container accessible to 
@@ -158,8 +158,8 @@ applications  on the workstation we map the default postgres port `5432` to
 `15432` as shown by the docker-compose configuration below.
 
 ```yaml
-    ports:
-      - "15432:5432"
+ports:
+  - "15432:5432"
 ```
 
 When a developer checks out the git repo with the application source code in it we want 
@@ -199,24 +199,24 @@ of the database. You can find the DDL in the file
 To set up the pgAdmin container we use the following service in the `docker-compose` file
 
 ```yaml
-  pgadmin:
-    container_name: demo_pgadmin
-    image: "dpage/pgadmin4:4.24"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-    volumes:
-       - pgadmin:/var/lib/pgadmin
-       - ./docker_pgadmin_servers.json:/pgadmin4/servers.json
-    ports:
-      - "15433:80"
-    entrypoint:
-      - "/bin/sh"
-      - "-c"
-      - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
-    restart: unless-stopped    
+pgadmin:
+container_name: demo_pgadmin
+image: "dpage/pgadmin4:4.24"
+environment:
+  PGADMIN_DEFAULT_EMAIL: admin
+  PGADMIN_DEFAULT_PASSWORD: admin
+  PGADMIN_CONFIG_SERVER_MODE: "False"
+  PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+volumes:
+   - pgadmin:/var/lib/pgadmin
+   - ./docker_pgadmin_servers.json:/pgadmin4/servers.json
+ports:
+  - "15433:80"
+entrypoint:
+  - "/bin/sh"
+  - "-c"
+  - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
+restart: unless-stopped    
 ```
 
 In order to have a repeatable build we use a specific version of the pgAdmin container 
@@ -237,9 +237,9 @@ Even though pgAdmin is running in desktop mode we still need to set up an admin
 username and password using the environment variables below. 
 
 ```yaml
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin
-      PGADMIN_DEFAULT_PASSWORD: admin
+environment:
+  PGADMIN_DEFAULT_EMAIL: admin
+  PGADMIN_DEFAULT_PASSWORD: admin
 ```
 
 pgAdmin is a generic console it can connect to multiple postgres servers. Therefore, it stores 
@@ -283,9 +283,9 @@ it stores state `/var/lib/pgadmin` to the docker volume `pgadmin` as shown in th
 below. 
 
 ```yaml
-      volumes:
-       - pgadmin:/var/lib/pgadmin
-       - ./docker_pgadmin_servers.json:/pgadmin4/servers.json
+volumes:
+ - pgadmin:/var/lib/pgadmin
+ - ./docker_pgadmin_servers.json:/pgadmin4/servers.json
 ```
 
 pgAdmin provides no mechanism to set passwords for the connections in `servers.json` since
@@ -294,10 +294,10 @@ very good policy on pgAdmin's part but given our goal of being able to just land
 in the UI  we have to override the pgAdmin container entrypoint as shown below.
 
 ```yaml
-  entrypoint:
-      - "/bin/sh"
-      - "-c"
-      - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
+entrypoint:
+  - "/bin/sh"
+  - "-c"
+  - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
 ```
 
 Docker executes an entrypoint via exec() function call without any shell expansion. 
@@ -307,8 +307,8 @@ to run followed by the parameters to pass to the executable. To make formatting 
 If we remove the yaml and docker entrypoint formatting the command executed is the one below.
 
  ```bash
- /bin/sh -c /bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh
- ```
+/bin/sh -c /bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh
+```
 
 `/bin/sh -c` is used to execute the shell with input from the command line rather than from a file. 
 The `&&` is used to chain a series of separate commands on a single line. If any command fails
@@ -352,7 +352,3 @@ Using `docker-compose up` to launch a postgres and pgAdmin can simplify local de
 environment configuration. Configuring pgAdmin so that it does not ask for passwords, 
 and connection information requires some tricky shell scripting that was broken down
 and explained step by step in this repo.
-
-
-
-
