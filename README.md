@@ -12,7 +12,8 @@ databases `demo1` and `demo2`. pgAdmin will not ask for any passwords.
 installed for this command to work. If you are only interested in the postgres docker-compose 
 configuration you can skip this step.
 
-Full details of how the sample works below. 
+Check out my blog [adibsaikali.com](https://adibsaikali.com) for a nice directory of other samples
+and technical posts. Full details of how the sample works below. 
 
 # Overview 
 PostgresSQL is a very powerful open source database that is available everywhere from 
