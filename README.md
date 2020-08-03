@@ -252,7 +252,7 @@ with the environment variable `PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"`
 Normal behaviour of pgAdmin is for a user to use the GUI to define a connetion to a database as
 shown below.
 
-![pgAdmin](diagrams/pgAdminConnect.png)
+<img src="diagrams/pgAdminConnect.png" width="400" height="500" title="PgAdmin">
 
 To avoid having to enter the connection settings we can create a json file with the connection 
 details that pgAdmin will import into its configuration the first time it starts.
