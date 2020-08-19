@@ -14,7 +14,7 @@ services:
       PGDATA: "/data/postgres"
     volumes:
        - postgres:/data/postgres
-       - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+       - ./.docker/docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     ports:
       - "15432:5432"
     restart: unless-stopped
@@ -29,7 +29,7 @@ services:
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
     volumes:
        - pgadmin:/var/lib/pgadmin
-       - ./docker_pgadmin_servers.json:/pgadmin4/servers.json
+       - ./.docker/docker_pgadmin_servers.json:/pgadmin4/servers.json
     ports:
       - "15433:80"
     entrypoint:
