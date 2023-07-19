@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.8'
 
 volumes:
     postgres:
@@ -7,7 +7,7 @@ volumes:
 services:
   postgres:
     container_name: demo_postgres
-    image: "postgres:12"
+    image: "postgres:15"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "password"
@@ -21,9 +21,9 @@ services:
   
   pgadmin:
     container_name: demo_pgadmin
-    image: "dpage/pgadmin4:4.24"
+    image: "dpage/pgadmin4:7.4"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
