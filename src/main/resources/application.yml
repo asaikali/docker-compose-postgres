@@ -5,6 +5,15 @@ spring:
     password: password
   jpa:
     open-in-view: false
+  docker:
+    compose:
+      # details at https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.docker-compose.lifecycle
+      lifecycle-management: start-and-stop
+      start:
+        command: up
+      stop:
+        command: down
+        timeout: 1m
 
 management:
   endpoints:
