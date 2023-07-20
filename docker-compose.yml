@@ -8,6 +8,7 @@ services:
   postgres:
     container_name: demo_postgres
     labels:
+      # see https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.docker-compose.custom-images for details
       org.springframework.boot.service-connection: postgres
     image: "postgres:15"
     environment:
@@ -23,6 +24,8 @@ services:
   
   pgadmin:
     container_name: demo_pgadmin
+    labels:
+      org.springframework.boot.ignore: true
     image: "dpage/pgadmin4:7.4"
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@example.com

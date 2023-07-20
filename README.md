@@ -59,7 +59,7 @@ We will break down the [docker-compose.yml](docker-compose.yml)  into parts and 
 each part works. 
 
 ```yaml
-version: '3.7'
+version: '3.8'
 
 volumes:
     postgres:
@@ -86,7 +86,7 @@ The `docker-compose.yml` contains a service named `postgres` defined below.
 services:
   postgres:
     container_name: demo_postgres
-    image: "postgres:12"
+    image: "postgres:15"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "password"
@@ -99,7 +99,7 @@ services:
     restart: unless-stopped
 ```
 In order to make the environment reproducible and predictable we explicitly set 
-the postgres container version to `postgres:12` which will always give us the most recent
+the postgres container version to `postgres:15` which will always give us the most recent
 bug fix release of postgres 12.  Setting the container tag to `postgres:latest` or 
 `postgres` will lead to unpredictability since we will get whatever is the latest version of 
 postgres at the time we run `docker-compose up`.
@@ -204,7 +204,7 @@ pgadmin:
 container_name: demo_pgadmin
 image: "dpage/pgadmin4:4.24"
 environment:
-  PGADMIN_DEFAULT_EMAIL: admin
+  PGADMIN_DEFAULT_EMAIL: admin@example.com
   PGADMIN_DEFAULT_PASSWORD: admin
   PGADMIN_CONFIG_SERVER_MODE: "False"
   PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
