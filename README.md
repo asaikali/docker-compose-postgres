@@ -6,7 +6,7 @@ Steps to try out the sample.
 
 * checkout the code 
 * run postgres and pgAdmin using `docker-compose up`
-* Using a browser go to `localhost:15432` and explore the pgAdmin console. There should be two 
+* Using a browser go to `localhost:15433` and explore the pgAdmin console. There should be two 
 databases `demo1` and `demo2`. pgAdmin will not ask for any passwords.
 * run the spring boot sample application with `./mvnw spring-boot:run` you will need Java 11 JDK
 installed for this command to work. If you are only interested in the postgres docker-compose 
