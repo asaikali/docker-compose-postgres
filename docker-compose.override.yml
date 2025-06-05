@@ -1,0 +1,6 @@
+services:
+  postgres:
+    build:
+      context: ./custom
+      dockerfile: Dockerfile
+    image: custom-postgres:17
