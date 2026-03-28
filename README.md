@@ -57,7 +57,7 @@ natively. The port numbers on the diagram are the same for Docker on Linux.
 
 ### Volumes, Configs, and Network
 
-We will break down the [docker-compose.yml](docker-compose.yml) into parts and explain how
+We will break down the [compose.yaml](compose.yaml) into parts and explain how
 each part works.
 
 ```yaml
@@ -76,7 +76,7 @@ settings across container restarts.
 
 Docker Compose v2.23.1+ supports inline config files using the top-level `configs` section
 with a `content` field. This lets you define small configuration files directly inside
-`docker-compose.yml` instead of maintaining separate files on disk. Compose mounts the
+`compose.yaml` instead of maintaining separate files on disk. Compose mounts the
 content as a read-only file inside the container at the path specified by `target`.
 
 ```yaml
@@ -114,11 +114,11 @@ Docker compose will automatically create a single network that all the container
 to and register them in DNS using the docker compose service name. This means that the pgAdmin
 container can find the postgres server using its docker-compose service name which is `postgres`.
 Docker compose derives the network name from the directory name containing the
-`docker-compose.yml` file. In this example the network name is `docker-compose-postgres_default`.
+`compose.yaml` file. In this example the network name is `docker-compose-postgres_default`.
 
 ### PostgreSQL Container
 
-The `docker-compose.yml` contains a service named `postgres` defined below.
+The `compose.yaml` contains a service named `postgres` defined below.
 
 ```yml
 services:
@@ -163,7 +163,7 @@ The `demo1` database does not have pgvector enabled, keeping it as a standard Po
 database for the Spring Boot sample application.
 
 To switch back to standard PostgreSQL without pgvector, swap the image lines in
-`docker-compose.yml`:
+`compose.yaml`:
 
 ```yaml
 image: "postgres:18"
@@ -315,7 +315,7 @@ shown below.
 <img src="diagrams/pgAdminConnect.png" width="400" height="500" title="PgAdmin">
 
 To avoid having to enter the connection settings we define the connection details using an
-inline config in `docker-compose.yml` that pgAdmin will import into its configuration.
+inline config in `compose.yaml` that pgAdmin will import into its configuration.
 Setting `PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"` ensures the server definitions are
 reloaded on every container restart, not just the first launch.
 
@@ -471,7 +471,7 @@ to `localhost:8080/` should return a random quote similar to the one below
 Spring Boot 3.1 introduced built-in Docker Compose support via the `spring-boot-docker-compose`
 dependency. When you run `./mvnw spring-boot:run`, Spring Boot automatically:
 
-1. Detects the `docker-compose.yml` in the project directory
+1. Detects the `compose.yaml` in the project directory
 2. Starts the containers if they aren't already running
 3. Reads each container's labels, ports, and environment variables
 4. Auto-configures connection details (datasource URL, username, password, database name)
@@ -491,7 +491,7 @@ services:
 This label tells Spring Boot that this container provides a PostgreSQL service connection.
 Spring Boot reads the container's mapped port (which may vary if `PG_PORT` is customized)
 and the `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` environment variables to
-configure the datasource automatically. Changing these values in `docker-compose.yml` is
+configure the datasource automatically. Changing these values in `compose.yaml` is
 the only step needed — no `application.yml` changes required.
 
 The pgadmin service has a different label to opt out of this auto-configuration:

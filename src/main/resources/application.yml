@@ -1,11 +1,11 @@
 spring:
   # The datasource url, username, and password are not needed here because
   # spring-boot-docker-compose auto-configures them from the running postgres
-  # container. The docker-compose.yml postgres service has the label
+  # container. The compose.yaml postgres service has the label
   # org.springframework.boot.service-connection: postgres which tells Spring Boot
   # to read the container's mapped port, credentials, and database name
   # (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB) and configure the datasource
-  # automatically. This means changing PG_PORT or credentials in docker-compose.yml
+  # automatically. This means changing PG_PORT or credentials in compose.yaml
   # works without touching this file.
   #
   # datasource:
