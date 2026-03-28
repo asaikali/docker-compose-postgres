@@ -53,10 +53,10 @@ On a Linux  workstation there is no need for a virtual machine since the docker 
 natively. The port numbers on the diagram are the same for docker on linux. Setting up the 
 containers with pre-configured connectivity is a bit tricky. Read on for the gory details.
 
-# Setting up the docker-compose volumes and network 
+# Setting up the docker-compose volumes, configs, and network
 
-We will break down the [docker-compose.yml](docker-compose.yml)  into parts and explain how 
-each part works. 
+We will break down the [docker-compose.yml](docker-compose.yml)  into parts and explain how
+each part works.
 
 ```yaml
 volumes:
@@ -65,15 +65,51 @@ volumes:
 ```
 
 The above section defines
-two volumes. The postgres volume will be used by the container running postgres, this means 
-that the state of the postgres database will survive restarts of the container. Similarly, 
+two volumes. The postgres volume will be used by the container running postgres, this means
+that the state of the postgres database will survive restarts of the container. Similarly,
 the `pgadmin` volume will be used by the pgAdmin container to store its configuration
 settings across container restarts.
 
-Docker compose will automatically create a single network that all the containers will be connected 
-to and register them in DNS using the docker compose service name. This means that the pgAdmin 
-container can find the postgres server using its docker-compose service name which is `postgres`. 
-docker-compose derives the network name from the directory name containing the 
+## Inline Config Files
+
+Docker Compose v2.23.1+ supports inline config files using the top-level `configs` section
+with a `content` field. This lets you define small configuration files directly inside
+`docker-compose.yml` instead of maintaining separate files on disk. Compose mounts the
+content as a read-only file inside the container at the path specified by `target`.
+
+```yaml
+configs:
+  postgres_init:
+    content: |
+      CREATE DATABASE demo2;
+  pgadmin_servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "Docker Compose",
+            "Group": "Servers",
+            "Port": 5432,
+            "Username": "postgres",
+            "Host": "postgres",
+            "SSLMode": "prefer",
+            "MaintenanceDB": "postgres",
+            "PassFile": "/tmp/pgpassfile"
+          }
+        }
+      }
+```
+
+The `postgres_init` config contains the SQL script that creates the `demo2` database.
+The `pgadmin_servers` config contains the pgAdmin server connection definition. Both are
+mounted into their respective containers using the `configs` section on each service.
+
+## Network
+
+Docker compose will automatically create a single network that all the containers will be connected
+to and register them in DNS using the docker compose service name. This means that the pgAdmin
+container can find the postgres server using its docker-compose service name which is `postgres`.
+Docker compose derives the network name from the directory name containing the
 `docker-compose.yml` file. In this example the network name is `docker-compose-postgres_default`.
 
 # Setting up the PostgresSQL Container
@@ -90,9 +126,11 @@ services:
       POSTGRES_PASSWORD: "password"
       POSTGRES_DB: "demo1"
       PGDATA: "/data/postgres"
+    configs:
+      - source: postgres_init
+        target: /docker-entrypoint-initdb.d/docker_postgres_init.sql
     volumes:
       - postgres:/data/postgres
-      - ./db/docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     ports:
       - "${PG_PORT:-15432}:5432"
     restart: unless-stopped
@@ -132,18 +170,14 @@ For additional databases beyond the one created by `POSTGRES_DB`, the postgres c
 will execute any `*.sql`, `*.sql.gz`, or `*.sh` scripts found in
 `/docker-entrypoint-initdb.d/` during first startup.
 
-In this repo we use a SQL init script `db/docker_postgres_init.sql` to create a second
-database called `demo2`:
-
-```sql
-CREATE DATABASE demo2;
-```
-
-The init script is mounted into the container via a volume mapping:
+In this repo we use the `postgres_init` inline config to create a second database called
+`demo2`. The config is mounted into the container at the path where postgres looks for
+init scripts:
 
 ```yaml
-volumes:
-  - ./db/docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+configs:
+  - source: postgres_init
+    target: /docker-entrypoint-initdb.d/docker_postgres_init.sql
 ```
 
 **Note:** Initialization scripts are only run when the container starts with an empty data
@@ -207,9 +241,12 @@ pgadmin:
     PGADMIN_DEFAULT_PASSWORD: "admin"
     PGADMIN_CONFIG_SERVER_MODE: "False"
     PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+  configs:
+    - source: pgadmin_servers
+      target: /pgadmin4/servers.json
   volumes:
     - pgadmin:/var/lib/pgadmin
-    - ./db/docker_pgadmin_servers.json:/pgadmin4/servers.json
   ports:
     - "${PGADMIN_PORT:-15433}:80"
   entrypoint:
@@ -254,8 +291,10 @@ shown below.
 
 <img src="diagrams/pgAdminConnect.png" width="400" height="500" title="PgAdmin">
 
-To avoid having to enter the connection settings we can create a json file with the connection 
-details that pgAdmin will import into its configuration the first time it starts.
+To avoid having to enter the connection settings we define the connection details using an
+inline config in `docker-compose.yml` that pgAdmin will import into its configuration.
+Setting `PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"` ensures the server definitions are
+reloaded on every container restart, not just the first launch.
 
 ```json
 {
@@ -274,18 +313,22 @@ details that pgAdmin will import into its configuration the first time it starts
   }
 ```
 
-The pgAdmin container looks for connections file at `pgadmin4/servers.json` therefore
-we store the configuration file at `db/docker_pgadmin_servers.json` and map it into
-the pgAdmin container using the mapping `./db/docker_pgadmin_servers.json:/pgadmin4/servers.json`
+The pgAdmin container looks for connections file at `/pgadmin4/servers.json`. We use the
+`pgadmin_servers` inline config to mount it there:
 
-In order for pgAdmin to store it's state across container restarts we map the location 
+```yaml
+configs:
+  - source: pgadmin_servers
+    target: /pgadmin4/servers.json
+```
+
+In order for pgAdmin to store its state across container restarts we map the location
 it stores state `/var/lib/pgadmin` to the docker volume `pgadmin` as shown in the yaml
-below. 
+below.
 
 ```yaml
 volumes:
  - pgadmin:/var/lib/pgadmin
- - ./db/docker_pgadmin_servers.json:/pgadmin4/servers.json
 ```
 
 pgAdmin provides no mechanism to set passwords for the connections in `servers.json` since

@@ -2,6 +2,27 @@ volumes:
   postgres:
   pgadmin:
 
+configs:
+  postgres_init:
+    content: |
+      CREATE DATABASE demo2;
+  pgadmin_servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "Docker Compose",
+            "Group": "Servers",
+            "Port": 5432,
+            "Username": "postgres",
+            "Host": "postgres",
+            "SSLMode": "prefer",
+            "MaintenanceDB": "postgres",
+            "PassFile": "/tmp/pgpassfile"
+          }
+        }
+      }
+
 services:
   postgres:
     container_name: demo_postgres
@@ -14,9 +35,11 @@ services:
       POSTGRES_PASSWORD: "password"
       POSTGRES_DB: "demo1"
       PGDATA: "/data/postgres"
+    configs:
+      - source: postgres_init
+        target: /docker-entrypoint-initdb.d/docker_postgres_init.sql
     volumes:
       - postgres:/data/postgres
-      - ./db/docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     ports:
       - "${PG_PORT:-15432}:5432"
     restart: unless-stopped
@@ -31,9 +54,12 @@ services:
       PGADMIN_DEFAULT_PASSWORD: "admin"
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+      PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    configs:
+      - source: pgadmin_servers
+        target: /pgadmin4/servers.json
     volumes:
       - pgadmin:/var/lib/pgadmin
-      - ./db/docker_pgadmin_servers.json:/pgadmin4/servers.json
     ports:
       - "${PGADMIN_PORT:-15433}:80"
     entrypoint:
