@@ -1,12 +1,11 @@
 package com.example.demo;
 
 import java.util.List;
-import java.util.Optional;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class MessageController {
@@ -18,24 +17,18 @@ public class MessageController {
     }
 
     @GetMapping("/")
-    public Quote radomQuote()
-    {
+    public Quote randomQuote() {
         return quoteRepository.findRandomQuote();
     }
 
     @GetMapping("/quotes")
-    public List<Quote> getAll()
-    {
+    public List<Quote> getAll() {
         return quoteRepository.findAll();
     }
 
     @GetMapping("/quotes/{id}")
-    public ResponseEntity<Quote> getQuote(@PathVariable("id") Integer id) {
-        Optional<Quote> quote = quoteRepository.findById(id);
-        if (quote.isPresent()) {
-            return new ResponseEntity<>(quote.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public Quote getQuote(@PathVariable Integer id) {
+        return quoteRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 }
