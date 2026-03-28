@@ -15,7 +15,7 @@ configuration you can skip this step.
 Check out my blog [adibsaikali.com](https://adibsaikali.com) for a nice directory of other samples
 and technical posts. Full details of how the sample works below.
 
-# Overview
+## Overview
 
 PostgresSQL is a very powerful open source database that is available everywhere from
 laptops to cloud providers. I have been using postgres for decades starting
@@ -41,9 +41,9 @@ This repo provides a frictionless Docker Compose configuration for pgAdmin and P
 with pre-configured connectivity and passwords. The sections below explain how each part
 of the configuration works.
 
-# Docker Compose Configuration
+## Docker Compose Configuration
 
-## Architecture
+### Architecture
 
 [PgAdmin 4](https://www.pgadmin.org/) is the graphical interface for working with Postgres, it is
 a single page JavaScript web application with a python backend.  The diagram below shows the
@@ -55,7 +55,7 @@ Docker desktop installed on MacOS or Windows.
 On a Linux workstation there is no need for a virtual machine since the docker daemon can run
 natively. The port numbers on the diagram are the same for Docker on Linux.
 
-## Volumes, Configs, and Network
+### Volumes, Configs, and Network
 
 We will break down the [docker-compose.yml](docker-compose.yml) into parts and explain how
 each part works.
@@ -72,7 +72,7 @@ that the state of the postgres database will survive restarts of the container. 
 the `pgadmin` volume will be used by the pgAdmin container to store its configuration
 settings across container restarts.
 
-### Inline Config Files
+#### Inline Config Files
 
 Docker Compose v2.23.1+ supports inline config files using the top-level `configs` section
 with a `content` field. This lets you define small configuration files directly inside
@@ -106,7 +106,7 @@ The `postgres_init` config contains the SQL script that creates the `demo2` data
 The `pgadmin_servers` config contains the pgAdmin server connection definition. Both are
 mounted into their respective containers using the `configs` section on each service.
 
-### Network
+#### Network
 
 Docker compose will automatically create a single network that all the containers will be connected
 to and register them in DNS using the docker compose service name. This means that the pgAdmin
@@ -114,7 +114,7 @@ container can find the postgres server using its docker-compose service name whi
 Docker compose derives the network name from the directory name containing the
 `docker-compose.yml` file. In this example the network name is `docker-compose-postgres_default`.
 
-## PostgreSQL Container
+### PostgreSQL Container
 
 The `docker-compose.yml` contains a service named `postgres` defined below.
 
@@ -149,7 +149,7 @@ To configure the administrative user for the database we set the `POSTGRES_USER`
 Postgres database files are stored in `/data/postgres`.
 This directory is mapped to postgres volume via the mapping `postgres:/data/postgres`.
 
-### Shared Memory (`shm_size`)
+#### Shared Memory (`shm_size`)
 
 Docker containers default to 64MB of `/dev/shm` (shared memory). PostgreSQL relies on shared
 memory for `shared_buffers` (default 128MB), locks, and parallel query coordination. When
@@ -163,12 +163,12 @@ it controls the size of the tmpfs mount at `/dev/shm` inside the container. Sinc
 consumes physical RAM for data actually written, this does not pre-allocate 256MB — it simply
 sets the upper limit.
 
-### Creating Databases
+#### Creating Databases
 
 The postgres Docker image provides two ways to create databases on first startup. This
 repo demonstrates both approaches.
 
-#### Using the `POSTGRES_DB` Environment Variable
+##### Using the `POSTGRES_DB` Environment Variable
 
 The simplest way to create a database is to set the `POSTGRES_DB` environment variable.
 The postgres container will automatically create a database with this name on first startup.
@@ -180,7 +180,7 @@ environment:
   POSTGRES_DB: "demo1"
 ```
 
-#### Using Initialization Scripts
+##### Using Initialization Scripts
 
 For additional databases beyond the one created by `POSTGRES_DB`, the postgres container
 will execute any `*.sql`, `*.sql.gz`, or `*.sh` scripts found in
@@ -199,7 +199,7 @@ configs:
 **Note:** Initialization scripts are only run when the container starts with an empty data
 directory. If you need to re-run them, remove the postgres volume first with `./pg clean`.
 
-### Port Mapping
+#### Port Mapping
 
 In order to make the postgres database running inside the docker container accessible to
 applications on the workstation we map the default postgres port `5432` to
@@ -216,7 +216,7 @@ port `15432` since the workstation might already have postgres installed and lis
 on the default port `5432`. Our hope is that port `15432` is available on the developer's
 workstation. The port can be customized using the `PG_PORT` environment variable.
 
-## pgAdmin Container
+### pgAdmin Container
 
 To set up the pgAdmin container we use the following service in the `docker-compose` file
 
@@ -362,11 +362,11 @@ entry point by calling `/entrypoint.sh` which on startup will find password file
 connections that point to the postgres we launched in docker. The net result is that you can
 just click around the pgAdmin UI, and you will not have to set up any connections or passwords.
 
-# Using the pg Script
+## Using the pg Script
 
 This repository includes a convenient shell script called `pg` that simplifies the management of PostgreSQL and pgAdmin containers. The script provides a simple command-line interface to start, stop, and manage the Docker Compose setup.
 
-## Commands
+### Commands
 
 - `./pg start`: Start PostgreSQL and pgAdmin containers in detached mode
 - `./pg status`: Display container status and connection information (including JDBC URL and psql command)
@@ -374,7 +374,7 @@ This repository includes a convenient shell script called `pg` that simplifies t
 - `./pg clean`: Stop containers and remove all associated volumes (data cleanup)
 - `./pg fix`: Detect and resolve port conflicts automatically
 
-## Examples
+### Examples
 
 Start the containers:
 ```bash
@@ -398,7 +398,7 @@ If you encounter port conflicts (e.g., ports 15432 or 15433 are already in use),
 
 The script will automatically detect containers using these ports and stop them.
 
-## Environment Variables
+### Environment Variables
 
 You can customize the ports used by setting environment variables before running the script:
 - `PG_PORT`: PostgreSQL port (default: 15432)
@@ -416,7 +416,7 @@ PG_PORT=25434 PGADMIN_PORT=25435 ./pg status
 PG_PORT=25434 PGADMIN_PORT=25435 ./pg stop
 ```
 
-# Spring Boot Application
+## Spring Boot Application
 
 The sample Spring Boot application demonstrates how to use the Docker Compose setup with
 a real application. It provides a simple REST API that serves quotes from the database.
@@ -432,7 +432,7 @@ to `localhost:8080/` should return a random quote similar to the one below
 }
 ```
 
-## Docker Compose Support
+### Docker Compose Support
 
 Spring Boot 3.1 introduced built-in Docker Compose support via the `spring-boot-docker-compose`
 dependency. When you run `./mvnw spring-boot:run`, Spring Boot automatically:
@@ -491,17 +491,17 @@ Before Spring Boot 3.1, developers had to manually configure the datasource URL,
 and password in `application.yml` and ensure the containers were already running before
 starting the application. The Docker Compose support eliminates this manual coordination.
 
-## Flyway
+### Flyway
 
 The sample application uses [Flyway DB](https://flywaydb.org/) to manage the database schema.
 You can find the DDL in the file `src/main/resources/db/migration/V1__create_quotes_table.sql`.
 
-## Testcontainers
+### Testcontainers
 
 [Testcontainers](https://www.testcontainers.org/) launches a fresh PostgreSQL container for
 each test run, making tests reproducible without any external database setup.
 
-### Evolution of Testcontainers Support in Spring Boot
+#### Evolution of Testcontainers Support in Spring Boot
 
 Spring Boot's Testcontainers integration has evolved significantly over time:
 
@@ -535,7 +535,7 @@ Spring Boot's Testcontainers integration has evolved significantly over time:
 3. **`@ImportTestcontainers`** — for sharing container definitions via interfaces instead
    of inheritance.
 
-### Recommended Approach: `@Bean` + `@ServiceConnection`
+#### Recommended Approach: `@Bean` + `@ServiceConnection`
 
 This repo uses the Spring team's recommended approach. The container is declared as a
 Spring bean with `@ServiceConnection` in a `@TestConfiguration` class:
@@ -580,7 +580,7 @@ No test `application.yml` is needed — `@ServiceConnection` handles everything.
 test classes sharing the same `@Import` reuse a single Spring application context (and
 therefore a single container), keeping the test suite fast.
 
-# Conclusion
+## Conclusion
 
 Using `docker compose up` to launch PostgreSQL and pgAdmin simplifies local development
 environment configuration. Combined with Spring Boot's Docker Compose support, the entire
