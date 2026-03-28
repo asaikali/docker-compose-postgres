@@ -121,6 +121,7 @@ services:
   postgres:
     container_name: demo_postgres
     image: "postgres:18"
+    shm_size: 256mb
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "password"
@@ -146,6 +147,20 @@ To configure the administrative user for the database we set the `POSTGRES_USER`
 
 Postgres database files are stored in `/data/postgres`.
 This directory is mapped to postgres volume via the mapping `postgres:/data/postgres`.
+
+## Shared Memory (`shm_size`)
+
+Docker containers default to 64MB of `/dev/shm` (shared memory). PostgreSQL relies on shared
+memory for `shared_buffers` (default 128MB), locks, and parallel query coordination. When
+PostgreSQL's shared memory usage exceeds the container's `/dev/shm` limit, you get the
+cryptic error `ERROR: could not resize shared memory segment: No space left on device`
+which has nothing to do with disk space.
+
+Setting `shm_size: 256mb` raises this limit to comfortably cover the default `shared_buffers`
+with headroom for other shared memory usage. This is a Docker setting, not a PostgreSQL one —
+it controls the size of the tmpfs mount at `/dev/shm` inside the container. Since tmpfs only
+consumes physical RAM for data actually written, this does not pre-allocate 256MB — it simply
+sets the upper limit.
 
 ## Creating Databases
 

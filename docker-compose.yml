@@ -30,6 +30,11 @@ services:
       # see https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.docker-compose.custom-images for details
       org.springframework.boot.service-connection: postgres
     image: "postgres:18"
+    # Docker defaults to 64mb /dev/shm which can cause "No space left on device" errors.
+    # PostgreSQL uses shared memory for shared_buffers (default 128mb), locks, and parallel queries.
+    # 256mb provides headroom beyond the default shared_buffers without pre-allocating RAM (tmpfs
+    # only consumes physical memory for data actually written).
+    shm_size: 256mb
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "password"
