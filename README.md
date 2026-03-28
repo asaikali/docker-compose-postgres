@@ -4,7 +4,7 @@
 
 Steps to try out the sample.
 
-* checkout the code 
+* checkout the code
 * run postgres and pgAdmin using `docker compose up`
 * Using a browser go to `localhost:15433` and explore the pgAdmin console. There should be two
 databases `demo1` and `demo2`. pgAdmin will not ask for any passwords.
@@ -13,38 +13,41 @@ installed for this command to work. If you are only interested in the postgres d
 configuration you can skip this step.
 
 Check out my blog [adibsaikali.com](https://adibsaikali.com) for a nice directory of other samples
-and technical posts. Full details of how the sample works below. 
+and technical posts. Full details of how the sample works below.
 
-# Overview 
-PostgresSQL is a very powerful open source database that is available everywhere from 
+# Overview
+
+PostgresSQL is a very powerful open source database that is available everywhere from
 laptops to cloud providers. I have been using postgres for decades starting
 in 1998. There are two distinct ways that I use postgres on my dev workstation.
 
 * ephemeral mode to execute automated tests
-* persistent mode during development and manual testing 
+* persistent mode during development and manual testing
 
-For automated integration testing I rely on the [test containers](https://www.testcontainers.org/) 
-project to automatically launch a fresh postgres database for each junit test. This makes tests 
-reproducible, relatively quick and painless to write. While tests are executing I don't need to 
+For automated integration testing I rely on the [test containers](https://www.testcontainers.org/)
+project to automatically launch a fresh postgres database for each junit test. This makes tests
+reproducible, relatively quick and painless to write. While tests are executing I don't need to
 interact with the postgres server the tests are running against.
 
-As I write code and manually interact with the application I am working on I want inspect the 
-postgres database the application is talking to. For many years I got away with installing a 
-local PostgresSQL on my dev machine. Everytime a new developer joins the project they have to 
-install PostgreSQL on their workstation, then run a script to create the development database. 
+As I write code and manually interact with the application I am working on I want inspect the
+postgres database the application is talking to. For many years I got away with installing a
+local PostgresSQL on my dev machine. Everytime a new developer joins the project they have to
+install PostgreSQL on their workstation, then run a script to create the development database.
 If the developer is working on two different applications that use different versions of PostgreSQL
 then local workstation setup gets more complicated. Docker compose can significantly reduce local
-development environment setup friction. 
+development environment setup friction.
 
 This repo provides a frictionless Docker Compose configuration for pgAdmin and PostgreSQL
 with pre-configured connectivity and passwords. The sections below explain how each part
 of the configuration works.
 
-# Postgres & PgAdmin Containers
+# Docker Compose Configuration
+
+## Architecture
 
 [PgAdmin 4](https://www.pgadmin.org/) is the graphical interface for working with Postgres, it is
-a single page JavaScript web application with a python backend.  The diagram below shows the 
-relationship between the various applications, containers, virtual machines running on a typical 
+a single page JavaScript web application with a python backend.  The diagram below shows the
+relationship between the various applications, containers, virtual machines running on a typical
 Docker desktop installed on MacOS or Windows.
 
 ![Overview](diagrams/overview.svg)
@@ -52,9 +55,9 @@ Docker desktop installed on MacOS or Windows.
 On a Linux workstation there is no need for a virtual machine since the docker daemon can run
 natively. The port numbers on the diagram are the same for Docker on Linux.
 
-# Setting up the docker-compose volumes, configs, and network
+## Volumes, Configs, and Network
 
-We will break down the [docker-compose.yml](docker-compose.yml)  into parts and explain how
+We will break down the [docker-compose.yml](docker-compose.yml) into parts and explain how
 each part works.
 
 ```yaml
@@ -69,7 +72,7 @@ that the state of the postgres database will survive restarts of the container. 
 the `pgadmin` volume will be used by the pgAdmin container to store its configuration
 settings across container restarts.
 
-## Inline Config Files
+### Inline Config Files
 
 Docker Compose v2.23.1+ supports inline config files using the top-level `configs` section
 with a `content` field. This lets you define small configuration files directly inside
@@ -103,7 +106,7 @@ The `postgres_init` config contains the SQL script that creates the `demo2` data
 The `pgadmin_servers` config contains the pgAdmin server connection definition. Both are
 mounted into their respective containers using the `configs` section on each service.
 
-## Network
+### Network
 
 Docker compose will automatically create a single network that all the containers will be connected
 to and register them in DNS using the docker compose service name. This means that the pgAdmin
@@ -111,7 +114,7 @@ container can find the postgres server using its docker-compose service name whi
 Docker compose derives the network name from the directory name containing the
 `docker-compose.yml` file. In this example the network name is `docker-compose-postgres_default`.
 
-# Setting up the PostgresSQL Container
+## PostgreSQL Container
 
 The `docker-compose.yml` contains a service named `postgres` defined below.
 
@@ -146,7 +149,7 @@ To configure the administrative user for the database we set the `POSTGRES_USER`
 Postgres database files are stored in `/data/postgres`.
 This directory is mapped to postgres volume via the mapping `postgres:/data/postgres`.
 
-## Shared Memory (`shm_size`)
+### Shared Memory (`shm_size`)
 
 Docker containers default to 64MB of `/dev/shm` (shared memory). PostgreSQL relies on shared
 memory for `shared_buffers` (default 128MB), locks, and parallel query coordination. When
@@ -160,12 +163,12 @@ it controls the size of the tmpfs mount at `/dev/shm` inside the container. Sinc
 consumes physical RAM for data actually written, this does not pre-allocate 256MB — it simply
 sets the upper limit.
 
-## Creating Databases
+### Creating Databases
 
 The postgres Docker image provides two ways to create databases on first startup. This
 repo demonstrates both approaches.
 
-### Using the `POSTGRES_DB` Environment Variable
+#### Using the `POSTGRES_DB` Environment Variable
 
 The simplest way to create a database is to set the `POSTGRES_DB` environment variable.
 The postgres container will automatically create a database with this name on first startup.
@@ -177,7 +180,7 @@ environment:
   POSTGRES_DB: "demo1"
 ```
 
-### Using Initialization Scripts
+#### Using Initialization Scripts
 
 For additional databases beyond the one created by `POSTGRES_DB`, the postgres container
 will execute any `*.sql`, `*.sql.gz`, or `*.sh` scripts found in
@@ -196,7 +199,7 @@ configs:
 **Note:** Initialization scripts are only run when the container starts with an empty data
 directory. If you need to re-run them, remove the postgres volume first with `./pg clean`.
 
-## Port Mapping
+### Port Mapping
 
 In order to make the postgres database running inside the docker container accessible to
 applications on the workstation we map the default postgres port `5432` to
@@ -211,9 +214,225 @@ When a developer checks out the git repo with the application source code in it 
 them to be able to run `docker compose up` and have that work, this is why we expose
 port `15432` since the workstation might already have postgres installed and listening
 on the default port `5432`. Our hope is that port `15432` is available on the developer's
-workstation. The port can be customized using the `PG_PORT` environment variable. 
+workstation. The port can be customized using the `PG_PORT` environment variable.
 
-## Spring Boot Docker Compose Support
+## pgAdmin Container
+
+To set up the pgAdmin container we use the following service in the `docker-compose` file
+
+```yaml
+pgadmin:
+  labels:
+    org.springframework.boot.ignore: true
+  image: "dpage/pgadmin4:9.13"
+  environment:
+    PGADMIN_DEFAULT_EMAIL: "admin@example.com"
+    PGADMIN_DEFAULT_PASSWORD: "admin"
+    PGADMIN_CONFIG_SERVER_MODE: "False"
+    PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+  configs:
+    - source: pgadmin_servers
+      target: /pgadmin4/servers.json
+  volumes:
+    - pgadmin:/var/lib/pgadmin
+  ports:
+    - "${PGADMIN_PORT:-15433}:80"
+  entrypoint:
+    - "/bin/sh"
+    - "-c"
+    - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
+  restart: unless-stopped
+```
+
+In order to have a repeatable build we use a specific version of the pgAdmin container
+`dpage/pgadmin4:9.13`. The `dpage` namespace belongs to Dave Page, the lead developer and
+maintainer of the pgAdmin project — this is the official container image for pgAdmin.
+
+pgAdmin can run in one of two modes desktop mode or server mode. When running in
+desktop mode pgAdmin assumes that it can only be reached from a developer's workstation
+and thus it will not require authentication to access the pgAdmin user interface.
+In server mode pgAdmin assumes that it is accessible to anyone on the network therefore
+it will require users to log in.
+
+Since we are running pgAdmin on developer workstation accessible only on localhost we want to
+skip pgAdmin authentication. Therefore, we run pgAdmin in desktop mode by setting the
+environment variable `PGADMIN_CONFIG_SERVER_MODE: "False"`.
+
+Even though pgAdmin is running in desktop mode we still need to set up an admin
+username and password using the environment variables below.
+
+```yaml
+environment:
+  PGADMIN_DEFAULT_EMAIL: "admin@example.com"
+  PGADMIN_DEFAULT_PASSWORD: "admin"
+```
+
+pgAdmin is a generic console it can connect to multiple postgres servers. Therefore, it stores
+the details of databases to connect to such as hostname, port number, user name, passwords
+in pgAdmin. Since these credentials are sensitive it encrypts them with a master password
+that must be entered by the user everytime they use pgAdmin. Since we are running pgAdmin to
+administer the single local development server running in docker we can disable the master password
+with the environment variable `PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"`.
+
+Normal behaviour of pgAdmin is for a user to use the GUI to define a connetion to a database as
+shown below.
+
+<img src="diagrams/pgAdminConnect.png" width="400" height="500" title="PgAdmin">
+
+To avoid having to enter the connection settings we define the connection details using an
+inline config in `docker-compose.yml` that pgAdmin will import into its configuration.
+Setting `PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"` ensures the server definitions are
+reloaded on every container restart, not just the first launch.
+
+The server connection JSON is defined in the `pgadmin_servers` inline config (shown in the
+configs section above). The pgAdmin container looks for this file at `/pgadmin4/servers.json`,
+so we mount the config there:
+
+```yaml
+configs:
+  - source: pgadmin_servers
+    target: /pgadmin4/servers.json
+```
+
+In order for pgAdmin to store its state across container restarts we map the location
+it stores state `/var/lib/pgadmin` to the docker volume `pgadmin` as shown in the yaml
+below.
+
+```yaml
+volumes:
+ - pgadmin:/var/lib/pgadmin
+```
+
+pgAdmin provides no mechanism to set passwords for the connections in `servers.json` since
+database passwords are sensitive and therefore should not be stored locally. This is a
+very good policy on pgAdmin's part but given our goal of being able to just land directly
+in the UI  we have to override the pgAdmin container entrypoint as shown below.
+
+```yaml
+entrypoint:
+  - "/bin/sh"
+  - "-c"
+  - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
+```
+
+Docker executes an entrypoint via exec() function call without any shell expansion.
+A docker entry point is an array of strings the first is the name of the executable
+to run followed by the parameters to pass to the executable. To make formatting easier in  the
+`docker-compose` file I used the list form as show in the code snippet above.
+If we remove the yaml and docker entrypoint formatting the command executed is the one below.
+
+ ```bash
+/bin/sh -c /bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh
+```
+
+`/bin/sh -c` is used to execute the shell with input from the command line rather than from a file.
+The `&&` is used to chain a series of separate commands on a single line. If any command fails
+subsequent commands will not be executed. With these advanced shell features explained we can
+breakdown the command into individual steps.
+
+```bash
+/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile
+```
+
+The command above will write a postgres password file to `/tmp/pgpassfile` which is referenced
+in the `servers.json`
+
+```json
+{
+    "Servers": {
+      "1": {
+        "PassFile": "/tmp/pgpassfile"
+      }
+    }
+  }
+```
+
+A postgres password file has the format `hostname:port:database:username:password` with
+the ability to use `*` a wild card match on the first 4 fields. So we write
+`postgres:5432:*:postgres:password` into the `/tmp/pgpassfile` notice that we use
+`*` for the database portion this means that for all databases pgAdmin will try to use
+`postgres` as the username and `password` as the password.
+
+For security reasons pgAdmin will ignore any password files that are not locked down with
+unix permissions of 600. Therefore, the next command we execute is `chmod 600 /tmp/pgpassfile`
+
+With the password file written with the correct unix permission we launch the pgAdmin container
+entry point by calling `/entrypoint.sh` which on startup will find password file and server
+connections that point to the postgres we launched in docker. The net result is that you can
+just click around the pgAdmin UI, and you will not have to set up any connections or passwords.
+
+# Using the pg Script
+
+This repository includes a convenient shell script called `pg` that simplifies the management of PostgreSQL and pgAdmin containers. The script provides a simple command-line interface to start, stop, and manage the Docker Compose setup.
+
+## Commands
+
+- `./pg start`: Start PostgreSQL and pgAdmin containers in detached mode
+- `./pg status`: Display container status and connection information (including JDBC URL and psql command)
+- `./pg stop`: Stop the running containers
+- `./pg clean`: Stop containers and remove all associated volumes (data cleanup)
+- `./pg fix`: Detect and resolve port conflicts automatically
+
+## Examples
+
+Start the containers:
+```bash
+./pg start
+```
+
+Check the status and get connection information:
+```bash
+./pg status
+```
+
+Stop the containers:
+```bash
+./pg stop
+```
+
+If you encounter port conflicts (e.g., ports 15432 or 15433 are already in use), you can use:
+```bash
+./pg fix
+```
+
+The script will automatically detect containers using these ports and stop them.
+
+## Environment Variables
+
+You can customize the ports used by setting environment variables before running the script:
+- `PG_PORT`: PostgreSQL port (default: 15432)
+- `PGADMIN_PORT`: pgAdmin port (default: 15433)
+
+Example:
+```bash
+PG_PORT=25434 PGADMIN_PORT=25435 ./pg start
+```
+```bash
+PG_PORT=25434 PGADMIN_PORT=25435 ./pg status
+```
+
+```bash
+PG_PORT=25434 PGADMIN_PORT=25435 ./pg stop
+```
+
+# Spring Boot Application
+
+The sample Spring Boot application demonstrates how to use the Docker Compose setup with
+a real application. It provides a simple REST API that serves quotes from the database.
+
+Running the application with the command `./mvnw spring-boot:run` and making a request
+to `localhost:8080/` should return a random quote similar to the one below
+
+```json
+{
+    "author": "Vincent Lombardi",
+    "id": 4,
+    "quote": "Success demands singleness of purpose"
+}
+```
+
+## Docker Compose Support
 
 Spring Boot 3.1 introduced built-in Docker Compose support via the `spring-boot-docker-compose`
 dependency. When you run `./mvnw spring-boot:run`, Spring Boot automatically:
@@ -272,173 +491,17 @@ Before Spring Boot 3.1, developers had to manually configure the datasource URL,
 and password in `application.yml` and ensure the containers were already running before
 starting the application. The Docker Compose support eliminates this manual coordination.
 
-Running the application with the command `./mvnw spring-boot:run` and making a request
-to `localhost:8080/` should return a random quote similar to the one below
+## Flyway
 
-```json
-{
-    "author": "Vincent Lombardi",
-    "id": 4,
-    "quote": "Success demands singleness of purpose"
-}
-```
+The sample application uses [Flyway DB](https://flywaydb.org/) to manage the database schema.
+You can find the DDL in the file `src/main/resources/db/migration/V1__create_quotes_table.sql`.
 
-The sample application uses [Flyway DB](https://flywaydb.org/) to manage the configuration
-of the database. You can find the DDL in the file
-`src/main/resources/db/migration/V1__create_quotes_table.sql`.
-
-# Setting up the pgAdmin 4 Container
-
-To set up the pgAdmin container we use the following service in the `docker-compose` file
-
-```yaml
-pgadmin:
-  labels:
-    org.springframework.boot.ignore: true
-  image: "dpage/pgadmin4:9.13"
-  environment:
-    PGADMIN_DEFAULT_EMAIL: "admin@example.com"
-    PGADMIN_DEFAULT_PASSWORD: "admin"
-    PGADMIN_CONFIG_SERVER_MODE: "False"
-    PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-    PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
-  configs:
-    - source: pgadmin_servers
-      target: /pgadmin4/servers.json
-  volumes:
-    - pgadmin:/var/lib/pgadmin
-  ports:
-    - "${PGADMIN_PORT:-15433}:80"
-  entrypoint:
-    - "/bin/sh"
-    - "-c"
-    - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
-  restart: unless-stopped
-```
-
-In order to have a repeatable build we use a specific version of the pgAdmin container
-`dpage/pgadmin4:9.13`. The `dpage` namespace belongs to Dave Page, the lead developer and
-maintainer of the pgAdmin project — this is the official container image for pgAdmin.
-
-pgAdmin can run in one of two modes desktop mode or server mode. When running in 
-desktop mode pgAdmin assumes that it can only be reached from a developer's workstation
-and thus it will not require authentication to access the pgAdmin user interface.
-In server mode pgAdmin assumes that it is accessible to anyone on the network therefore
-it will require users to log in. 
-
-Since we are running pgAdmin on developer workstation accessible only on localhost we want to
-skip pgAdmin authentication. Therefore, we run pgAdmin in desktop mode by setting the 
-environment variable `PGADMIN_CONFIG_SERVER_MODE: "False"`.
-
-Even though pgAdmin is running in desktop mode we still need to set up an admin 
-username and password using the environment variables below. 
-
-```yaml
-environment:
-  PGADMIN_DEFAULT_EMAIL: "admin@example.com"
-  PGADMIN_DEFAULT_PASSWORD: "admin"
-```
-
-pgAdmin is a generic console it can connect to multiple postgres servers. Therefore, it stores 
-the details of databases to connect to such as hostname, port number, user name, passwords 
-in pgAdmin. Since these credentials are sensitive it encrypts them with a master password 
-that must be entered by the user everytime they use pgAdmin. Since we are running pgAdmin to 
-administer the single local development server running in docker we can disable the master password
-with the environment variable `PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"`.
-
-Normal behaviour of pgAdmin is for a user to use the GUI to define a connetion to a database as
-shown below.
-
-<img src="diagrams/pgAdminConnect.png" width="400" height="500" title="PgAdmin">
-
-To avoid having to enter the connection settings we define the connection details using an
-inline config in `docker-compose.yml` that pgAdmin will import into its configuration.
-Setting `PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"` ensures the server definitions are
-reloaded on every container restart, not just the first launch.
-
-The server connection JSON is defined in the `pgadmin_servers` inline config (shown in the
-configs section above). The pgAdmin container looks for this file at `/pgadmin4/servers.json`,
-so we mount the config there:
-
-```yaml
-configs:
-  - source: pgadmin_servers
-    target: /pgadmin4/servers.json
-```
-
-In order for pgAdmin to store its state across container restarts we map the location
-it stores state `/var/lib/pgadmin` to the docker volume `pgadmin` as shown in the yaml
-below.
-
-```yaml
-volumes:
- - pgadmin:/var/lib/pgadmin
-```
-
-pgAdmin provides no mechanism to set passwords for the connections in `servers.json` since
-database passwords are sensitive and therefore should not be stored locally. This is a 
-very good policy on pgAdmin's part but given our goal of being able to just land directly
-in the UI  we have to override the pgAdmin container entrypoint as shown below.
-
-```yaml
-entrypoint:
-  - "/bin/sh"
-  - "-c"
-  - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
-```
-
-Docker executes an entrypoint via exec() function call without any shell expansion. 
-A docker entry point is an array of strings the first is the name of the executable 
-to run followed by the parameters to pass to the executable. To make formatting easier in  the 
-`docker-compose` file I used the list form as show in the code snippet above. 
-If we remove the yaml and docker entrypoint formatting the command executed is the one below.
-
- ```bash
-/bin/sh -c /bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh
-```
-
-`/bin/sh -c` is used to execute the shell with input from the command line rather than from a file. 
-The `&&` is used to chain a series of separate commands on a single line. If any command fails
-subsequent commands will not be executed. With these advanced shell features explained we can 
-breakdown the command into individual steps. 
-
-```bash
-/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile 
-```
-
-The command above will write a postgres password file to `/tmp/pgpassfile` which is referenced
-in the `servers.json` 
-
-```json
-{
-    "Servers": {
-      "1": {
-        "PassFile": "/tmp/pgpassfile"
-      }
-    }
-  }
-```
-
-A postgres password file has the format `hostname:port:database:username:password` with 
-the ability to use `*` a wild card match on the first 4 fields. So we write 
-`postgres:5432:*:postgres:password` into the `/tmp/pgpassfile` notice that we use 
-`*` for the database portion this means that for all databases pgAdmin will try to use
-`postgres` as the username and `password` as the password.
-
-For security reasons pgAdmin will ignore any password files that are not locked down with 
-unix permissions of 600. Therefore, the next command we execute is `chmod 600 /tmp/pgpassfile`
-
-With the password file written with the correct unix permission we launch the pgAdmin container
-entry point by calling `/entrypoint.sh` which on startup will find password file and server
-connections that point to the postgres we launched in docker. The net result is that you can 
-just click around the pgAdmin UI, and you will not have to set up any connections or passwords.
-
-# Testcontainers
+## Testcontainers
 
 [Testcontainers](https://www.testcontainers.org/) launches a fresh PostgreSQL container for
 each test run, making tests reproducible without any external database setup.
 
-## Evolution of Testcontainers Support in Spring Boot
+### Evolution of Testcontainers Support in Spring Boot
 
 Spring Boot's Testcontainers integration has evolved significantly over time:
 
@@ -472,7 +535,7 @@ Spring Boot's Testcontainers integration has evolved significantly over time:
 3. **`@ImportTestcontainers`** — for sharing container definitions via interfaces instead
    of inheritance.
 
-## Recommended Approach: `@Bean` + `@ServiceConnection`
+### Recommended Approach: `@Bean` + `@ServiceConnection`
 
 This repo uses the Spring team's recommended approach. The container is declared as a
 Spring bean with `@ServiceConnection` in a `@TestConfiguration` class:
@@ -515,64 +578,10 @@ cleanup.
 
 No test `application.yml` is needed — `@ServiceConnection` handles everything. Multiple
 test classes sharing the same `@Import` reuse a single Spring application context (and
-therefore a single container), keeping the test suite fast. 
+therefore a single container), keeping the test suite fast.
 
-# Conclusion 
+# Conclusion
 
 Using `docker compose up` to launch PostgreSQL and pgAdmin simplifies local development
 environment configuration. Combined with Spring Boot's Docker Compose support, the entire
 datasource configuration is derived automatically from the running containers.
-
-# Using the pg Script
-
-This repository includes a convenient shell script called `pg` that simplifies the management of PostgreSQL and pgAdmin containers. The script provides a simple command-line interface to start, stop, and manage the Docker Compose setup.
-
-## Commands
-
-- `./pg start`: Start PostgreSQL and pgAdmin containers in detached mode
-- `./pg status`: Display container status and connection information (including JDBC URL and psql command)
-- `./pg stop`: Stop the running containers
-- `./pg clean`: Stop containers and remove all associated volumes (data cleanup)
-- `./pg fix`: Detect and resolve port conflicts automatically
-
-## Examples
-
-Start the containers:
-```bash
-./pg start
-```
-
-Check the status and get connection information:
-```bash
-./pg status
-```
-
-Stop the containers:
-```bash
-./pg stop
-```
-
-If you encounter port conflicts (e.g., ports 15432 or 15433 are already in use), you can use:
-```bash
-./pg fix
-```
-
-The script will automatically detect containers using these ports and stop them.
-
-## Environment Variables
-
-You can customize the ports used by setting environment variables before running the script:
-- `PG_PORT`: PostgreSQL port (default: 15432)
-- `PGADMIN_PORT`: pgAdmin port (default: 15433)
-
-Example:
-```bash
-PG_PORT=25434 PGADMIN_PORT=25435 ./pg start
-```
-```bash
-PG_PORT=25434 PGADMIN_PORT=25435 ./pg status
-```
-
-```bash
-PG_PORT=25434 PGADMIN_PORT=25435 ./pg stop
-```
