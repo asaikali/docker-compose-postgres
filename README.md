@@ -36,9 +36,9 @@ If the developer is working on two different applications that use different ver
 then local workstation setup gets more complicated. Docker compose can significantly reduce local
 development environment setup friction. 
 
-Setting up pgAdmin with pre-configured connectivity and passwords is tricky, it requires 
-in depth understanding of containers, docker, docker-compose, shell scripting, and how pgAdmin 
-works. This repo provides a frictionless docker-compose pgAdmin and postgres configuration.
+This repo provides a frictionless Docker Compose configuration for pgAdmin and PostgreSQL
+with pre-configured connectivity and passwords. The sections below explain how each part
+of the configuration works.
 
 # Postgres & PgAdmin Containers
 
@@ -49,9 +49,8 @@ Docker desktop installed on MacOS or Windows.
 
 ![Overview](diagrams/overview.svg)
 
-On a Linux  workstation there is no need for a virtual machine since the docker daemon can run 
-natively. The port numbers on the diagram are the same for docker on linux. Setting up the 
-containers with pre-configured connectivity is a bit tricky. Read on for the gory details.
+On a Linux workstation there is no need for a virtual machine since the docker daemon can run
+natively. The port numbers on the diagram are the same for Docker on Linux.
 
 # Setting up the docker-compose volumes, configs, and network
 
@@ -119,7 +118,6 @@ The `docker-compose.yml` contains a service named `postgres` defined below.
 ```yml
 services:
   postgres:
-    container_name: demo_postgres
     image: "postgres:18"
     shm_size: 256mb
     environment:
@@ -319,8 +317,8 @@ pgadmin:
 ```
 
 In order to have a repeatable build we use a specific version of the pgAdmin container
-`dpage/pgadmin4:9.13`. David Page is the lead developer and maintainer of pgAdmin so
-`dpage/pgadmin4` is a good container image to use. 
+`dpage/pgadmin4:9.13`. The `dpage` namespace belongs to Dave Page, the lead developer and
+maintainer of the pgAdmin project — this is the official container image for pgAdmin.
 
 pgAdmin can run in one of two modes desktop mode or server mode. When running in 
 desktop mode pgAdmin assumes that it can only be reached from a developer's workstation
@@ -358,25 +356,9 @@ inline config in `docker-compose.yml` that pgAdmin will import into its configur
 Setting `PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"` ensures the server definitions are
 reloaded on every container restart, not just the first launch.
 
-```json
-{
-    "Servers": {
-      "1": {
-        "Name": "Docker Compose",
-        "Group": "Servers",
-        "Port": 5432,
-        "Username": "postgres",
-        "Host": "postgres",
-        "SSLMode": "prefer",
-        "MaintenanceDB": "postgres",
-        "PassFile": "/tmp/pgpassfile"
-      }
-    }
-  }
-```
-
-The pgAdmin container looks for connections file at `/pgadmin4/servers.json`. We use the
-`pgadmin_servers` inline config to mount it there:
+The server connection JSON is defined in the `pgadmin_servers` inline config (shown in the
+configs section above). The pgAdmin container looks for this file at `/pgadmin4/servers.json`,
+so we mount the config there:
 
 ```yaml
 configs:
@@ -537,10 +519,9 @@ therefore a single container), keeping the test suite fast.
 
 # Conclusion 
 
-Using `docker-compose up` to launch a postgres and pgAdmin can simplify local development
-environment configuration. Configuring pgAdmin so that it does not ask for passwords, 
-and connection information requires some tricky shell scripting that was broken down
-and explained step by step in this repo.
+Using `docker compose up` to launch PostgreSQL and pgAdmin simplifies local development
+environment configuration. Combined with Spring Boot's Docker Compose support, the entire
+datasource configuration is derived automatically from the running containers.
 
 # Using the pg Script
 
