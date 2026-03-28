@@ -1,8 +1,0 @@
-spring:
-  datasource:
-    url: "jdbc:tc:postgresql:15:///demo1?TC_TMPFS=/testtmpfs:rw"
-    username: postgres
-    password: password
-
-
-
