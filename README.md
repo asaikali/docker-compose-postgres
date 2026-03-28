@@ -215,19 +215,67 @@ port `15432` since the workstation might already have postgres installed and lis
 on the default port `5432`. Our hope is that port `15432` is available on the developer's
 workstation. The port can be customized using the `PG_PORT` environment variable. 
 
-For example the spring boot application included in this repo can connect to the postgres
-database using the `application.yml` configuration below 
+## Spring Boot Docker Compose Support
+
+Spring Boot 3.1 introduced built-in Docker Compose support via the `spring-boot-docker-compose`
+dependency. When you run `./mvnw spring-boot:run`, Spring Boot automatically:
+
+1. Detects the `docker-compose.yml` in the project directory
+2. Starts the containers if they aren't already running
+3. Reads each container's labels, ports, and environment variables
+4. Auto-configures connection details (datasource URL, username, password, database name)
+5. Stops the containers when the application shuts down
+
+This means **no datasource configuration is needed in `application.yml`**. Spring Boot
+derives everything from the running container. The key that makes this work is the
+`org.springframework.boot.service-connection` label on the postgres service:
+
+```yaml
+services:
+  postgres:
+    labels:
+      org.springframework.boot.service-connection: postgres
+```
+
+This label tells Spring Boot that this container provides a PostgreSQL service connection.
+Spring Boot reads the container's mapped port (which may vary if `PG_PORT` is customized)
+and the `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` environment variables to
+configure the datasource automatically. Changing these values in `docker-compose.yml` is
+the only step needed — no `application.yml` changes required.
+
+The pgadmin service has a different label to opt out of this auto-configuration:
+
+```yaml
+services:
+  pgadmin:
+    labels:
+      org.springframework.boot.ignore: true
+```
+
+The `application.yml` controls the Docker Compose lifecycle behavior:
 
 ```yaml
 spring:
-  datasource:
-    url: "jdbc:postgresql://127.0.0.1:15432/demo1"
-    username: postgres
-    password: password
+  docker:
+    compose:
+      lifecycle-management: start-and-stop
+      start:
+        command: up
+      stop:
+        command: down
+        timeout: 1m
 ```
 
+With `start-and-stop`, Spring Boot starts the containers when the application starts and
+stops them when it shuts down. This is convenient for development — just run
+`./mvnw spring-boot:run` and everything is managed for you.
+
+Before Spring Boot 3.1, developers had to manually configure the datasource URL, username,
+and password in `application.yml` and ensure the containers were already running before
+starting the application. The Docker Compose support eliminates this manual coordination.
+
 Running the application with the command `./mvnw spring-boot:run` and making a request
-to `localhost:8080/` should return a random quote similar to the one below 
+to `localhost:8080/` should return a random quote similar to the one below
 
 ```json
 {
@@ -237,8 +285,8 @@ to `localhost:8080/` should return a random quote similar to the one below
 }
 ```
 
-The sample application uses [Flyway DB](https://flywaydb.org/) to manage the configuration 
-of the database. You can find the DDL in the file 
+The sample application uses [Flyway DB](https://flywaydb.org/) to manage the configuration
+of the database. You can find the DDL in the file
 `src/main/resources/db/migration/V1__create_quotes_table.sql`.
 
 # Setting up the pgAdmin 4 Container
@@ -247,7 +295,6 @@ To set up the pgAdmin container we use the following service in the `docker-comp
 
 ```yaml
 pgadmin:
-  container_name: demo_pgadmin
   labels:
     org.springframework.boot.ignore: true
   image: "dpage/pgadmin4:9.13"
