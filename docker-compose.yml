@@ -58,6 +58,11 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
       PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+      # Python logging levels: 10=DEBUG, 20=INFO, 30=WARNING, 40=ERROR
+      # Default is DEBUG which floods the console with heartbeat messages
+      PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: 30
+      # Redirect Gunicorn access logs (HTTP requests) to a file instead of the console
+      GUNICORN_ACCESS_LOGFILE: "/var/lib/pgadmin/access.log"
     configs:
       - source: pgadmin_servers
         target: /pgadmin4/servers.json
