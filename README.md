@@ -84,6 +84,8 @@ configs:
   postgres_init:
     content: |
       CREATE DATABASE demo2;
+      \c demo2
+      CREATE EXTENSION vector;
   pgadmin_servers:
     content: |
       {
@@ -123,7 +125,8 @@ services:
   postgres:
     labels:
       org.springframework.boot.service-connection: postgres
-    image: "postgres:18"
+    # image: "postgres:18"
+    image: "pgvector/pgvector:pg18"
     shm_size: 256mb
     environment:
       POSTGRES_USER: "postgres"
@@ -139,10 +142,37 @@ services:
       - "${PG_PORT:-15432}:5432"
     restart: unless-stopped
 ```
+#### pgvector
+
+This repo uses the [pgvector](https://github.com/pgvector/pgvector) image
+(`pgvector/pgvector:pg18`) instead of the standard `postgres:18` image. The pgvector image
+is built on top of the official PostgreSQL image — it's fully compatible with the same
+environment variables, init scripts, and volume mounts — but includes the pgvector extension
+pre-installed. pgvector adds vector similarity search to PostgreSQL, which is useful for
+AI/ML applications that work with embeddings.
+
+The extension is enabled in the `demo2` database via the init script:
+
+```sql
+CREATE DATABASE demo2;
+\c demo2
+CREATE EXTENSION vector;
+```
+
+The `demo1` database does not have pgvector enabled, keeping it as a standard PostgreSQL
+database for the Spring Boot sample application.
+
+To switch back to standard PostgreSQL without pgvector, swap the image lines in
+`docker-compose.yml`:
+
+```yaml
+image: "postgres:18"
+# image: "pgvector/pgvector:pg18"
+```
+
 In order to make the environment reproducible and predictable we explicitly set
-the postgres container version to `postgres:18` which will always give us the most recent
-bug fix release of postgres 18. Setting the container tag to `postgres:latest` or
-`postgres` will lead to unpredictability since we will get whatever is the latest version of
+the postgres container version rather than using `postgres:latest` or `postgres`
+which would lead to unpredictability since we would get whatever is the latest version of
 postgres at the time we run `docker compose up`.
 
 To configure the administrative user for the database we set the `POSTGRES_USER` and

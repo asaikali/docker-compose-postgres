@@ -6,6 +6,8 @@ configs:
   postgres_init:
     content: |
       CREATE DATABASE demo2;
+      \c demo2
+      CREATE EXTENSION vector;
   pgadmin_servers:
     content: |
       {
@@ -28,7 +30,10 @@ services:
     labels:
       # see https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#features.docker-compose.custom-images for details
       org.springframework.boot.service-connection: postgres
-    image: "postgres:18"
+    # Use pgvector image for vector similarity search support (AI/embeddings).
+    # To use standard postgres without pgvector, swap the image lines below.
+    # image: "postgres:18"
+    image: "pgvector/pgvector:pg18"
     # Docker defaults to 64mb /dev/shm which can cause "No space left on device" errors.
     # PostgreSQL uses shared memory for shared_buffers (default 128mb), locks, and parallel queries.
     # 256mb provides headroom beyond the default shared_buffers without pre-allocating RAM (tmpfs
