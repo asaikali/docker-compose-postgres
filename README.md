@@ -121,6 +121,8 @@ The `docker-compose.yml` contains a service named `postgres` defined below.
 ```yml
 services:
   postgres:
+    labels:
+      org.springframework.boot.service-connection: postgres
     image: "postgres:18"
     shm_size: 256mb
     environment:
@@ -231,6 +233,8 @@ pgadmin:
     PGADMIN_CONFIG_SERVER_MODE: "False"
     PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
     PGADMIN_REPLACE_SERVERS_ON_STARTUP: "True"
+    PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: 30
+    GUNICORN_ACCESS_LOGFILE: "/var/lib/pgadmin/access.log"
   configs:
     - source: pgadmin_servers
       target: /pgadmin4/servers.json
@@ -275,7 +279,7 @@ that must be entered by the user everytime they use pgAdmin. Since we are runnin
 administer the single local development server running in docker we can disable the master password
 with the environment variable `PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"`.
 
-Normal behaviour of pgAdmin is for a user to use the GUI to define a connetion to a database as
+Normal behaviour of pgAdmin is for a user to use the GUI to define a connection to a database as
 shown below.
 
 <img src="diagrams/pgAdminConnect.png" width="400" height="500" title="PgAdmin">
