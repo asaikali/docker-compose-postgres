@@ -5,11 +5,11 @@
 Steps to try out the sample.
 
 * checkout the code 
-* run postgres and pgAdmin using `docker-compose up`
-* Using a browser go to `localhost:15432` and explore the pgAdmin console. There should be two 
+* run postgres and pgAdmin using `docker compose up`
+* Using a browser go to `localhost:15433` and explore the pgAdmin console. There should be two
 databases `demo1` and `demo2`. pgAdmin will not ask for any passwords.
-* run the spring boot sample application with `./mvnw spring-boot:run` you will need Java 11 JDK
-installed for this command to work. If you are only interested in the postgres docker-compose 
+* run the spring boot sample application with `./mvnw spring-boot:run` you will need Java 25 JDK
+installed for this command to work. If you are only interested in the postgres docker-compose
 configuration you can skip this step.
 
 Check out my blog [adibsaikali.com](https://adibsaikali.com) for a nice directory of other samples
@@ -59,14 +59,12 @@ We will break down the [docker-compose.yml](docker-compose.yml)  into parts and 
 each part works. 
 
 ```yaml
-version: '3.8'
-
 volumes:
     postgres:
     pgadmin:
 ```
 
-The above section defines standard docker-compose file version number, and it also defines 
+The above section defines
 two volumes. The postgres volume will be used by the container running postgres, this means 
 that the state of the postgres database will survive restarts of the container. Similarly, 
 the `pgadmin` volume will be used by the pgAdmin container to store its configuration
@@ -80,94 +78,93 @@ docker-compose derives the network name from the directory name containing the
 
 # Setting up the PostgresSQL Container
 
-The `docker-compose.yml` contains a service named `postgres` defined below.  
+The `docker-compose.yml` contains a service named `postgres` defined below.
 
 ```yml
 services:
   postgres:
     container_name: demo_postgres
-    image: "postgres:15"
+    image: "postgres:18"
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "demo1"
       PGDATA: "/data/postgres"
     volumes:
-       - postgres:/data/postgres
-       - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+      - postgres:/data/postgres
+      - ./db/docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
     ports:
-      - "15432:5432"
+      - "${PG_PORT:-15432}:5432"
     restart: unless-stopped
 ```
-In order to make the environment reproducible and predictable we explicitly set 
-the postgres container version to `postgres:15` which will always give us the most recent
-bug fix release of postgres 12.  Setting the container tag to `postgres:latest` or 
-`postgres` will lead to unpredictability since we will get whatever is the latest version of 
-postgres at the time we run `docker-compose up`.
+In order to make the environment reproducible and predictable we explicitly set
+the postgres container version to `postgres:18` which will always give us the most recent
+bug fix release of postgres 18. Setting the container tag to `postgres:latest` or
+`postgres` will lead to unpredictability since we will get whatever is the latest version of
+postgres at the time we run `docker compose up`.
 
 To configure the administrative user for the database we set the `POSTGRES_USER` and
-`POSTGRES_PASSWORD` environment variables. 
+`POSTGRES_PASSWORD` environment variables.
 
-Postgres database files are stored in `/data/postgres`. 
+Postgres database files are stored in `/data/postgres`.
 This directory is mapped to postgres volume via the mapping `postgres:/data/postgres`.
 
-When the postgres container starts it looks for a file called `docker_postgres_init.sql` 
-which will be executed during start up to configure the database. For example, in this repo we 
-create two databases `demo1` and `demo2` using the DDL below. 
+## Creating Databases
 
-```SQL
-CREATE DATABASE demo1
-    WITH
-    OWNER = postgres
-    ENCODING = 'UTF8'
-    LC_COLLATE = 'en_US.utf8'
-    LC_CTYPE = 'en_US.utf8'
-    TABLESPACE = pg_default
-    CONNECTION LIMIT = -1;
+The postgres Docker image provides two ways to create databases on first startup. This
+repo demonstrates both approaches.
 
-CREATE DATABASE demo2
-    WITH
-    OWNER = postgres
-    ENCODING = 'UTF8'
-    LC_COLLATE = 'en_US.utf8'
-    LC_CTYPE = 'en_US.utf8'
-    TABLESPACE = pg_default
-    CONNECTION LIMIT = -1;
+### Using the `POSTGRES_DB` Environment Variable
+
+The simplest way to create a database is to set the `POSTGRES_DB` environment variable.
+The postgres container will automatically create a database with this name on first startup.
+In this repo we use it to create the `demo1` database which is the primary database used
+by the Spring Boot application.
+
+```yaml
+environment:
+  POSTGRES_DB: "demo1"
 ```
 
-The postgres container looks for the initialization sql file at the path 
-`/docker-entrypoint-initdb.d/docker_postgres_init.sql`.  To keep things 
-simple we store our ddl in a file called  `docker_postgres_init.sql` and put it 
-at the same level as the `docker-compose.yml` as shown by the example directory
-listing below. 
+### Using Initialization Scripts
 
-```
--rw-r--r--   1 adib  staff   1.0K  2 Aug 20:37 docker-compose.yml
--rw-r--r--   1 adib  staff   300B  2 Aug 17:04 docker_pgadmin_servers.json
--rw-r--r--   1 adib  staff   375B  2 Aug 16:35 docker_postgres_init.sql
+For additional databases beyond the one created by `POSTGRES_DB`, the postgres container
+will execute any `*.sql`, `*.sql.gz`, or `*.sh` scripts found in
+`/docker-entrypoint-initdb.d/` during first startup.
+
+In this repo we use a SQL init script `db/docker_postgres_init.sql` to create a second
+database called `demo2`:
+
+```sql
+CREATE DATABASE demo2;
 ```
 
-The init sql file is mapped to the place where the postgres container expects it to
-be via the volume mapping below. 
+The init script is mounted into the container via a volume mapping:
 
 ```yaml
 volumes:
-  - ./docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
+  - ./db/docker_postgres_init.sql:/docker-entrypoint-initdb.d/docker_postgres_init.sql
 ```
 
-In order to make the postgres database running inside the docker container accessible to 
-applications  on the workstation we map the default postgres port `5432` to
+**Note:** Initialization scripts are only run when the container starts with an empty data
+directory. If you need to re-run them, remove the postgres volume first with `./pg clean`.
+
+## Port Mapping
+
+In order to make the postgres database running inside the docker container accessible to
+applications on the workstation we map the default postgres port `5432` to
 `15432` as shown by the docker-compose configuration below.
 
 ```yaml
 ports:
-  - "15432:5432"
+  - "${PG_PORT:-15432}:5432"
 ```
 
-When a developer checks out the git repo with the application source code in it we want 
-them to be able to run `docker-compose up` and have that work, this is why we expose 
+When a developer checks out the git repo with the application source code in it we want
+them to be able to run `docker compose up` and have that work, this is why we expose
 port `15432` since the workstation might already have postgres installed and listening
 on the default port `5432`. Our hope is that port `15432` is available on the developer's
-workstation. 
+workstation. The port can be customized using the `PG_PORT` environment variable. 
 
 For example the spring boot application included in this repo can connect to the postgres
 database using the `application.yml` configuration below 
@@ -201,28 +198,30 @@ To set up the pgAdmin container we use the following service in the `docker-comp
 
 ```yaml
 pgadmin:
-container_name: demo_pgadmin
-image: "dpage/pgadmin4:4.24"
-environment:
-  PGADMIN_DEFAULT_EMAIL: admin@example.com
-  PGADMIN_DEFAULT_PASSWORD: admin
-  PGADMIN_CONFIG_SERVER_MODE: "False"
-  PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
-volumes:
-   - pgadmin:/var/lib/pgadmin
-   - ./docker_pgadmin_servers.json:/pgadmin4/servers.json
-ports:
-  - "15433:80"
-entrypoint:
-  - "/bin/sh"
-  - "-c"
-  - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
-restart: unless-stopped    
+  container_name: demo_pgadmin
+  labels:
+    org.springframework.boot.ignore: true
+  image: "dpage/pgadmin4:9.13"
+  environment:
+    PGADMIN_DEFAULT_EMAIL: "admin@example.com"
+    PGADMIN_DEFAULT_PASSWORD: "admin"
+    PGADMIN_CONFIG_SERVER_MODE: "False"
+    PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+  volumes:
+    - pgadmin:/var/lib/pgadmin
+    - ./db/docker_pgadmin_servers.json:/pgadmin4/servers.json
+  ports:
+    - "${PGADMIN_PORT:-15433}:80"
+  entrypoint:
+    - "/bin/sh"
+    - "-c"
+    - "/bin/echo 'postgres:5432:*:postgres:password' > /tmp/pgpassfile && chmod 600 /tmp/pgpassfile && /entrypoint.sh"
+  restart: unless-stopped
 ```
 
-In order to have a repeatable build we use a specific version of the pgAdmin container 
-`dpage/pgadmin4:4.24`. David Page is the lead developer and maintainer of pgAdmin so 
-`dpage/pgadmin4:4.24` is a good container image to use. 
+In order to have a repeatable build we use a specific version of the pgAdmin container
+`dpage/pgadmin4:9.13`. David Page is the lead developer and maintainer of pgAdmin so
+`dpage/pgadmin4` is a good container image to use. 
 
 pgAdmin can run in one of two modes desktop mode or server mode. When running in 
 desktop mode pgAdmin assumes that it can only be reached from a developer's workstation
@@ -239,8 +238,8 @@ username and password using the environment variables below.
 
 ```yaml
 environment:
-  PGADMIN_DEFAULT_EMAIL: admin
-  PGADMIN_DEFAULT_PASSWORD: admin
+  PGADMIN_DEFAULT_EMAIL: "admin@example.com"
+  PGADMIN_DEFAULT_PASSWORD: "admin"
 ```
 
 pgAdmin is a generic console it can connect to multiple postgres servers. Therefore, it stores 
@@ -276,8 +275,8 @@ details that pgAdmin will import into its configuration the first time it starts
 ```
 
 The pgAdmin container looks for connections file at `pgadmin4/servers.json` therefore
-we store the configuration file at `docker_pgadmin_servers.json` and map it into
-the pgAdmin container using the mapping `./docker_pgadmin_servers.json:/pgadmin4/servers.json`
+we store the configuration file at `db/docker_pgadmin_servers.json` and map it into
+the pgAdmin container using the mapping `./db/docker_pgadmin_servers.json:/pgadmin4/servers.json`
 
 In order for pgAdmin to store it's state across container restarts we map the location 
 it stores state `/var/lib/pgadmin` to the docker volume `pgadmin` as shown in the yaml
@@ -286,7 +285,7 @@ below.
 ```yaml
 volumes:
  - pgadmin:/var/lib/pgadmin
- - ./docker_pgadmin_servers.json:/pgadmin4/servers.json
+ - ./db/docker_pgadmin_servers.json:/pgadmin4/servers.json
 ```
 
 pgAdmin provides no mechanism to set passwords for the connections in `servers.json` since
@@ -371,15 +370,15 @@ the `src/test/resources/application.yml` config file uses test containers url sh
 ```yaml
 spring:
   datasource:
-    url: "jdbc:tc:postgresql:12:///demo1?TC_TMPFS=/testtmpfs:rw"
+    url: "jdbc:tc:postgresql:15:///demo1?TC_TMPFS=/testtmpfs:rw"
     username: postgres
     password: password
 ```
 
-Test containers has nice integration with Spring Boot and it uses the specially formatted jdbc 
-url `jdbc:tc:postgresql:12:///demo1?TC_TMPFS=/testtmpfs:rw` to launch the postgres 12 container
-create database called demo1 and put the postgres data directory on a temporary in RAM  
-file system for optimal performance of Postgres while the test is executing. The postgres database 
+Test containers has nice integration with Spring Boot and it uses the specially formatted jdbc
+url `jdbc:tc:postgresql:15:///demo1?TC_TMPFS=/testtmpfs:rw` to launch a postgres container,
+create a database called demo1 and put the postgres data directory on a temporary in RAM
+file system for optimal performance of Postgres while the test is executing. The postgres database
 will only exist for the duration of the test case execution there is no point in storing its data
 on disk. 
 

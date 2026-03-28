@@ -12,6 +12,7 @@ services:
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "password"
+      POSTGRES_DB: "demo1"
       PGDATA: "/data/postgres"
     volumes:
       - postgres:/data/postgres
