@@ -404,41 +404,89 @@ entry point by calling `/entrypoint.sh` which on startup will find password file
 connections that point to the postgres we launched in docker. The net result is that you can 
 just click around the pgAdmin UI, and you will not have to set up any connections or passwords.
 
-# Test Containers
+# Testcontainers
 
-The sample application in this repo includes the automated test shown below.
+[Testcontainers](https://www.testcontainers.org/) launches a fresh PostgreSQL container for
+each test run, making tests reproducible without any external database setup.
+
+## Evolution of Testcontainers Support in Spring Boot
+
+Spring Boot's Testcontainers integration has evolved significantly over time:
+
+**Before Spring Boot 3.1** — there were two approaches, both requiring manual wiring:
+
+1. **JDBC URL trick** — a specially formatted URL like `jdbc:tc:postgresql:15:///demo1`
+   in `application.yml` that Testcontainers intercepts to spin up a container. Simple but
+   opaque, and the postgres version is buried in a config file.
+
+2. **`@DynamicPropertySource`** — using the `@Testcontainers` JUnit extension with
+   `@Container` fields and manually setting Spring properties from the container:
+   ```java
+   @DynamicPropertySource
+   static void properties(DynamicPropertyRegistry registry) {
+       registry.add("spring.datasource.url", postgres::getJdbcUrl);
+       registry.add("spring.datasource.username", postgres::getUsername);
+       registry.add("spring.datasource.password", postgres::getPassword);
+   }
+   ```
+   Verbose and error-prone — every test class needed the same boilerplate.
+
+**Spring Boot 3.1 (May 2023)** — introduced three new features:
+
+1. **`@ServiceConnection`** — auto-configures connection details from a container. No manual
+   property wiring needed.
+
+2. **Container `@Bean` methods** — declare containers as Spring beans in a `@TestConfiguration`.
+   Spring manages the lifecycle, ensuring containers start before dependent beans and stop
+   after them.
+
+3. **`@ImportTestcontainers`** — for sharing container definitions via interfaces instead
+   of inheritance.
+
+## Recommended Approach: `@Bean` + `@ServiceConnection`
+
+This repo uses the Spring team's recommended approach. The container is declared as a
+Spring bean with `@ServiceConnection` in a `@TestConfiguration` class:
 
 ```java
-@SpringBootTest
-class DemoApplicationTests {
+@TestConfiguration(proxyBeanMethods = false)
+class TestDatabaseConfig {
 
-	@Autowired
-	private QuoteRepository quoteRepository;
-
-	@Test
-	@DisplayName("Database has 5 quotes")
-	void databaseHas5Quotes() {
-		Assertions.assertThat(this.quoteRepository.findAll()).hasSize(5);
-	}
+    @Bean
+    @ServiceConnection
+    PostgreSQLContainer<?> postgres() {
+        return new PostgreSQLContainer<>("postgres:18");
+    }
 }
 ```
 
-the `src/test/resources/application.yml` config file uses test containers url shown below 
+Test classes import this configuration:
 
-```yaml
-spring:
-  datasource:
-    url: "jdbc:tc:postgresql:15:///demo1?TC_TMPFS=/testtmpfs:rw"
-    username: postgres
-    password: password
+```java
+@SpringBootTest
+@Import(TestDatabaseConfig.class)
+class DemoApplicationTests {
+
+    @Autowired
+    private QuoteRepository quoteRepository;
+
+    @Test
+    @DisplayName("Database has 5 quotes")
+    void databaseHas5Quotes() {
+        Assertions.assertThat(this.quoteRepository.findAll()).hasSize(5);
+    }
+}
 ```
 
-Test containers has nice integration with Spring Boot and it uses the specially formatted jdbc
-url `jdbc:tc:postgresql:15:///demo1?TC_TMPFS=/testtmpfs:rw` to launch a postgres container,
-create a database called demo1 and put the postgres data directory on a temporary in RAM
-file system for optimal performance of Postgres while the test is executing. The postgres database
-will only exist for the duration of the test case execution there is no point in storing its data
-on disk. 
+This approach is preferred over the JUnit `@Container` field approach because Spring
+controls the container lifecycle — it starts the container before dependent beans initialize
+and stops it after they are destroyed. With the JUnit approach, the container may shut down
+before Spring destroys beans that still hold database connections, causing errors during
+cleanup.
+
+No test `application.yml` is needed — `@ServiceConnection` handles everything. Multiple
+test classes sharing the same `@Import` reuse a single Spring application context (and
+therefore a single container), keeping the test suite fast. 
 
 # Conclusion 
 
