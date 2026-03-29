@@ -255,7 +255,7 @@ readonly PGADMIN_PORT="${PGADMIN_PORT:-15433}"  # pgAdmin port (default: 15433)
 readonly DB_HOST=localhost                # Database host for local connections
 readonly DB_USER=postgres                 # PostgreSQL username
 readonly DB_PASSWORD=password             # PostgreSQL password
-readonly DB_NAME=postgres                 # PostgreSQL database name
+readonly DB_NAME=demo1                    # PostgreSQL database name
 readonly PGADMIN_URL="http://localhost:${PGADMIN_PORT}"  # pgAdmin URL
 
 #------------------------------------------------------------------------------
